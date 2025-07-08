@@ -1,0 +1,40 @@
+<template>
+    
+
+    <lightning-card title="Products">
+
+          <div class="slds-p-around_small">
+            <!-- Search Input -->
+            <lightning-input type="text" placeholder="Search Products..." onchange={handleSearch}></lightning-input>
+        </div>
+
+       
+
+        <!-- No Results Found -->
+        <template if:true={noResults}>
+            <p>No Products found.</p>
+        </template>
+
+        <lightning-datatable
+                    key-field="Id"
+                    data={filteredProducts}
+                   columns={columns}
+                   onproductupdate={handleProductUpdate}
+                   onremoveproduct={handleRemoveProduct}
+                   onrowaction={handleRowAction}
+                   >
+        </lightning-datatable>
+
+
+      <!-- Pagination Controls -->
+            <div class="slds-m-top_medium slds-align_absolute-center">
+                <lightning-button label="Previous" onclick={previousPage} disabled={disablePrevious}></lightning-button>
+                <span class="slds-m-horizontal_medium">Page {currentPage} of {totalPages}</span>
+                <lightning-button label="Next" onclick={nextPage} disabled={disableNext}></lightning-button>
+            </div>
+
+
+    </lightning-card>
+
+
+</template>

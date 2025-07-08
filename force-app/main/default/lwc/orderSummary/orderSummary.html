@@ -1,0 +1,36 @@
+
+
+
+<template>
+    <lightning-card title="Order Summary">
+
+
+        
+
+        <lightning-datatable key-field="Id"
+                             data={cartItems}
+                             columns={columns}
+                             hide-checkbox-column>
+
+        </lightning-datatable>
+
+
+        <!-- <div class="slds-box slds-m-bottom_medium">
+            <template for:each={cartItems} for:item="item">
+                <div key={item.Id} class="slds-m-bottom_small">
+                    <p>{item.Name} — Qty: {item.Quantity__c} - Price: ₹{item.SellingPrice__c} </p>
+                </div>
+            </template>
+            <hr/>
+            <div class="slds-text-heading_medium slds-m-top_small">
+                <strong>Total: ₹{total}</strong>
+            </div>
+        </div> -->
+
+        <lightning-button
+            variant="success"
+            label="Place Order"
+            onclick={handlePlaceOrder}>
+        </lightning-button>
+    </lightning-card>
+</template>

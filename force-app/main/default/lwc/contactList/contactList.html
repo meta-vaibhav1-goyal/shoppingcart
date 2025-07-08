@@ -1,0 +1,9 @@
+<template>
+    <lightning-button  variant="brand" label="Create Contact" onclick={handleClick}></lightning-button>
+    <lightning-button  variant="brand" label="Edit Contact" onclick={handleClickEdit} style="margin-left: 10px;"></lightning-button>
+    <lightning-datatable
+                key-field="Id"
+                data={contacts}
+                columns={fields}>
+        </lightning-datatable>
+</template>

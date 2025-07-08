@@ -1,0 +1,21 @@
+<template>
+    
+    <lightning-card title="Cart" icon-name="standard:cart">
+
+   
+        <lightning-datatable 
+                    key-field="Id"
+                    data={cartItems}
+                   columns={columns}
+                   draft-values={draftValues}
+                   onsave={handleSave}
+                   onrowaction={handleRowAction}
+                   hide-checkbox-column>
+
+        </lightning-datatable>
+    
+
+    </lightning-card>
+
+
+</template>

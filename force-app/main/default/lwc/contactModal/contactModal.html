@@ -1,0 +1,13 @@
+<template>
+    <lightning-modal-header label={label}></lightning-modal-header>
+    <lightning-modal-body> 
+        <lightning-record-form
+            object-api-name={contactObject}
+            fields={myfields}
+            record-id={recordId}
+            onsuccess={handleContactCreated}
+            onerror={handleError}>
+        </lightning-record-form>
+    </lightning-modal-body>
+    
+</template>
