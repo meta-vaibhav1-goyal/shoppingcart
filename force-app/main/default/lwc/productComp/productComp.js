@@ -149,8 +149,24 @@ export default class ProductComp extends LightningElement {
         const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
         const products = []; 
         console.log("addd to cart"); 
+        let noQuantityName = ""; 
+        let isToast = false; 
         for (let i = 0; i < selectedRows.length; i++) {
-            products.push(selectedRows[i]);
+            if(selectedRows[i].Available_Units__c <= 0){
+                noQuantityName = noQuantityName + selectedRows[i].Name + ', ';
+                isToast = true; 
+            }else{
+               products.push(selectedRows[i]);      
+            }
+        }
+        console.log(noQuantityName); 
+        if(isToast){
+
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Insufficient stock',
+                message: `There is not enough stock of ${noQuantityName} to add to cart`,
+                variant: 'error'
+            }));
         }
         //const productId = selectedRows[0].Id;
         console.log(products);
@@ -167,18 +183,19 @@ export default class ProductComp extends LightningElement {
             composed: true
         }));
 
-        // for(const product of productIds)
+        for(const product of products) {
+            this.products = this.products.map(p => {
+                if(p.Id === product.Id) {
+                    const updated = {
+                        ...p,
+                        Available_Units__c: p.Available_Units__c - 1
+                    }; 
+                    return updated;
+                }
+                return p;
+            });
+        }
             
-        // this.products = this.products.map(p => {
-        //     if(p.Id === productId) {
-        //         const updated = {
-        //             ...p,
-        //             Available_Units__c: p.Available_Units__c - 1
-        //         }; 
-        //         return updated;
-        //     }
-        //     return p;
-        // });
 
     }
 
