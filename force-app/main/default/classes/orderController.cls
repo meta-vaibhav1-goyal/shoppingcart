@@ -1,9 +1,52 @@
 public with sharing class orderController {
+
+
+
+    // @AuraEnabled(cacheable=true)
+    // public static Map<String, Object> getPaginatedProducts(Integer pageNumber, Integer pageSize){ 
+
+    //     Map<String, Object> response = new Map<String, Object>();
+
+    //     List<Product2> products =  [SELECT  Id,Name, Product__c, SellingPrice__c,	Available_Units__c FROM Product2 
+    //     ORDER BY Name LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)];    
+        
+        
+    //      // Get total record count (for pagination)
+    //     Integer totalRecords = [SELECT COUNT() FROM Product2];
+
+    //     // Calculate total pages
+    //     Integer totalPages = (totalRecords + pageSize - 1) / pageSize;
+
+
+    //     // Add data to response map
+    //     response.put('records', products);
+    //     response.put('totalRecords', totalRecords);
+    //     response.put('totalPages', totalPages);
+        
+    //     return response;
+    // }
     
-    @AuraEnabled
-    public static List<PurchaseOrder__c> getPrevoiusOrders() {
-        System.debug('--- PurchaseOrder__c --- ' + PurchaseOrder__c.sObjectType); 
-        return [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC] ;
+    // @AuraEnabled
+    // public static List<PurchaseOrder__c> getPrevoiusOrders() {
+    //     System.debug('--- PurchaseOrder__c --- ' + PurchaseOrder__c.sObjectType); 
+    //     return [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC] ;
+    // }
+
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getPrevoiusOrders(Integer pageNumber, Integer pageSize) {
+        Map<String, Object> response = new Map<String, Object>();
+        List<PurchaseOrder__c> orders = [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC
+        LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)];
+
+        Integer totalRecords = [SELECT COUNT() FROM PurchaseOrder__c];
+
+        Integer totalPages = (totalRecords + pageSize - 1) / pageSize;
+
+        response.put('records', orders);
+        response.put('totalRecords', totalRecords);
+        response.put('totalPages', totalPages);
+
+        return response;
     }
 
 

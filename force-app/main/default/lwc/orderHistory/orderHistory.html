@@ -1,54 +1,86 @@
 <template>
     
-    <lightning-card title="Purchase Orders" variant="Narrow" icon-name="standard:account">
-
-        <template if:true={previousOrders}>
-            <lightning-datatable 
-                key-field="Id"
-                data={previousOrders}
-                columns={orderColumns}
-                hide-checkbox-column>
-
-            </lightning-datatable>
-        </template>
-
-        <lightning-button label="Add New Purchase Order"
-                          onclick={handleStartOrder}
-                          class="slds-m-top_medium">
-        </lightning-button>
-
-        <template if:true={showProductTable}>
-            <c-product-comp onaddtocart={handleAddToCart}></c-product-comp>
-        </template>
-
-
-        <template if:true={showCart}>
-            <c-cart-item 
-                cart-items={cartItems}
-                onupdatecart={handleUpdateCart}
-                onremove={handleRemoveFromCart}>
-            </c-cart-item>
-        </template>
-
-
-         <!--  Checkout Button -->
-        <template if:true={showCart}>
-            <lightning-button
-                class="slds-m-top_medium"
-                label="Checkout"
-                onclick={handleCheckout}
-                variant="brand">
+    <template if:true={showPurchaseOrderSection}>
+        <lightning-card title="Purchase Orders" variant="Narrow" icon-name="standard:account">
+    
+            <template if:true={previousOrders}>
+                <lightning-datatable 
+                    key-field="Id"
+                    data={previousOrders}
+                    columns={orderColumns}
+                    hide-checkbox-column>
+    
+                </lightning-datatable>
+                <div class="slds-m-top_medium slds-align_absolute-center">
+                    <lightning-button label="Previous" onclick={previousPage} disabled={disablePrevious}></lightning-button>
+                    <span class="slds-m-horizontal_medium">Page {currentPage} of {totalPages}</span>
+                    <lightning-button label="Next" onclick={nextPage} disabled={disableNext}></lightning-button>
+                </div>
+            </template>
+    
+            <lightning-button label="Add New Purchase Order"
+                              onclick={handleStartOrder}
+                              class="slds-m-top_medium">
             </lightning-button>
-        </template>
+    
+        </lightning-card>
 
-        <template if:true={showSummary}>
-            <c-order-summary cart-items={cartItems}
-                             onplaceorder={handlePlaceOrder}>
-            </c-order-summary>
-        </template>
+    </template>
 
 
-    </lightning-card>
+
+    <template if:true={showProductSection}>
+
+        <lightning-card title="Products" icon-name="standard:product_consumed">
+            <template if:true={showProductTable}>
+                <c-product-comp onaddtocart={handleAddToCart}></c-product-comp>
+            </template>
+
+        </lightning-card>
+    </template>
+
+    <template if:true={showCartSection}>
+        <lightning-card title="Cart" icon-name="standard:cart">
+    
+             <template if:true={showCart}>
+                <c-cart-item 
+                    cart-items={cartItems}
+                    onupdatecart={handleUpdateCart}
+                    onremove={handleRemoveFromCart}>
+                </c-cart-item>
+            </template>
+            <template if:true={showCart}>
+                 <!--  Checkout Button -->
+                <lightning-button
+                    class="slds-m-top_medium"
+                    label="Checkout"
+                    onclick={handleCheckout}
+                    variant="brand">
+                </lightning-button>
+            </template>
+    
+        </lightning-card>
+
+    </template>
+
+       
+
+    <template if:true={showInvoiceSection}>
+        <lightning-card title="Invoice" icon-name="standard:opportunity">
+            <template if:true={showSummary}>
+                <c-order-summary cart-items={cartItems}
+                                 onplaceorder={handlePlaceOrder}>
+                </c-order-summary>
+            </template>
+        </lightning-card>
+    </template>
+
+         
+
+       
+
+
+    
 
 
 </template>

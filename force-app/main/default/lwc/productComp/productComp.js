@@ -9,27 +9,28 @@ import Toast from 'lightning/toast';
 
 export default class ProductComp extends LightningElement {
 
-    products;
+    products; 
+    
     columns = [
-        {label: 'Id', fieldName: 'Id'},
+        // {label: 'Id', fieldName: 'Id'},
         {label: 'Name', fieldName: 'Name'},
         {label: 'Product Code', fieldName: 'Product__c'},
         {label: 'Price', fieldName: 'SellingPrice__c', type: 'currency'},
         {label: 'Units Available', fieldName: 'Available_Units__c'},
-        {
-            type:'button',
-            typeAttributes: {
-                label: 'Add to Cart',
-                name: 'add',
-                title: 'Add',
-                disabled: {fieldName: 'disableAdd'},
-                variant: 'brand'
-            }
-        }
+        // {
+        //     type:'button',
+        //     typeAttributes: {
+        //         label: 'Add to Cart',
+        //         name: 'add',
+        //         title: 'Add',
+        //         disabled: {fieldName: 'disableAdd'},
+        //         variant: 'brand'
+        //     }
+        // }
     ];
 
 
-
+    productList;
 
 
 
@@ -48,6 +49,7 @@ export default class ProductComp extends LightningElement {
     async loadProducts() {
         try {
             const result = await getPaginatedProducts({ pageNumber: this.currentPage, pageSize: this.pageSize });
+            this.productList = result;
             this.products = result.records.map(p => ({
                 ...p, disableAdd: p.Available_Units__c === 0
             }));
@@ -93,7 +95,7 @@ export default class ProductComp extends LightningElement {
     noResults = false;
     async handleSearch(event) {
         const searchTerm = event.target.value;
-        if (searchTerm) {
+        if (searchTerm&&(searchTerm!=='')) {
             try {
                 const result = await searchProducts({ searchKey: searchTerm })
                 this.products = result.map(p => ({
@@ -109,44 +111,110 @@ export default class ProductComp extends LightningElement {
             }
               
         } else {
-            this.products = await getProducts();
-            this.noResults = false;
+            this.loadProducts();     
         }
     }
 
 
 
-    handleRowAction(event) {
-        const action = event.detail.action.name;
-        const row = event.detail.row;
-        if(action === 'add') {
-            this.dispatchEvent(new CustomEvent('addtocart', {
-                detail: {
-                    Id: row.Id,
-                    Name: row.Name,
-                    Available_Units__c: row.Available_Units__c,
-                    SellingPrice__c: row.SellingPrice__c,
-                    Original_Stock__c: row.Available_Units__c
+    // async handleClickEdit() {
+    //     // this is to select rows from the UI from DataTable
+    //     const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
+    //     console.log(selectedRows);
+    //     if(selectedRows.length != 1){
+    //         this.dispatchEvent(new ShowToastEvent({
+    //             title: 'Please select a row',
+    //             message: 'Please select a row to edit',
+    //             variant: 'error'
+    //         }));
+    //     }else{
+    //         const contactId = selectedRows[0].Id;     
+    //         console.log(contactId);
+    //         const result = await ContactModal.open({
+    //             size: 'large',
+    //             recordId: contactId,
+    //             label: 'Edit Contact Modal'
+    //         });
+            
+    //         if(result === 'Success') {
+    //            await refreshApex(this.wiredResult);
+    //         }
+           
+    //         console.log(result);
+    //     }
+    
+    // }
 
-                },
-                bubbles: true,
-                composed: true
-            }));
+     handleAdd() {
+        const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
+        const products = []; 
+        console.log("addd to cart"); 
+        for (let i = 0; i < selectedRows.length; i++) {
+            products.push(selectedRows[i]);
+        }
+        //const productId = selectedRows[0].Id;
+        console.log(products);
+        this.dispatchEvent(new CustomEvent('addtocart', {
+            detail: {
+                // Id: productId,
+                // Name: selectedRows[0].Name,
+                // Available_Units__c: selectedRows[0].Available_Units__c,
+                // SellingPrice__c: selectedRows[0].SellingPrice__c,
+                // Original_Stock__c: selectedRows[0].Available_Units__c
+                productIds: products
+            },
+            bubbles: true,
+            composed: true
+        }));
 
-            // Decrease available units in the product table
-            this.products = this.products.map(p => {
-                if(p.Id === row.Id) {
-                    const updated = {
-                        ...p,
-                        Available_Units__c: p.Available_Units__c - 1
-                    };
-                    updated.disableAdd = updated.Available_Units__c === 0;
-                    return updated;
-                }
-                return p;
-            });
-        } 
+        // for(const product of productIds)
+            
+        // this.products = this.products.map(p => {
+        //     if(p.Id === productId) {
+        //         const updated = {
+        //             ...p,
+        //             Available_Units__c: p.Available_Units__c - 1
+        //         }; 
+        //         return updated;
+        //     }
+        //     return p;
+        // });
+
     }
+
+
+
+    // handleRowAction(event) {
+    //     const action = event.detail.action.name;
+    //     const row = event.detail.row;
+    //     if(action === 'add') {
+    //         this.dispatchEvent(new CustomEvent('addtocart', {
+    //             detail: {
+    //                  Id: row.Id,
+    //                 Name: row.Name,
+    //                 Available_Units__c: row.Available_Units__c,
+    //                 SellingPrice__c: row.SellingPrice__c,
+    //                 Original_Stock__c: row.Available_Units__c
+
+    //             },
+    //             bubbles: true,
+    //             composed: true
+    //         }));
+
+    //         // Decrease available units in the product table
+    //         this.products = this.products.map(p => {
+    //             if(p.Id === row.Id) {
+    //                 const updated = {
+    //                     ...p,
+    //                     Available_Units__c: p.Available_Units__c - 1
+    //                 };
+    //                 updated.disableAdd = updated.Available_Units__c === 0;
+    //                 return updated;
+    //             }
+    //             return p;
+    //         });
+    //     } 
+    // }
 
 
     handleProductUpdate(event) {
@@ -156,6 +224,9 @@ export default class ProductComp extends LightningElement {
 
     handleRemoveProduct(event) {
         const products = event.detail;
+        console.log('pr' + JSON.stringify(products));
+       
+        
         this.restoreProducts(products);
     }
 
@@ -183,6 +254,8 @@ updateAvailableUnitsFromCartDiff(oldCart, newCart) {
 restoreProducts(removedProducts) {
     this.products = this.products.map(p => {
         const removed = removedProducts.find(r => r.Id === p.Id);
+        console.log("The removed qty " + removed.Quantity__c);
+        
         if (removed) {
             const restoredQty = p.Available_Units__c + removed.Quantity__c;
             return {

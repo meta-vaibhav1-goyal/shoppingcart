@@ -22,7 +22,9 @@ export default class OrderSummary extends LightningElement {
     handlePlaceOrder() {
 
         console.log('Placed order starting');
+
         const order = { OrderDate__c: new Date(), Status__c: 'Placed', TotalAmount__c: this.total};
+        
         const lineItems = this.cartItems.map(item => ({
             Product__c: item.Id,
             Quantity__c: item.Quantity__c,

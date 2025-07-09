@@ -1,6 +1,7 @@
 import { LightningElement, track, wire } from 'lwc';
 import getPrevoiusOrders from '@salesforce/apex/orderController.getPrevoiusOrders';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 
 export default class OrderHistory extends LightningElement {
 
@@ -12,6 +13,7 @@ export default class OrderHistory extends LightningElement {
     showProductTable = false;
     showCart = false;
     showSummary = false;
+    wiredResult;
     orderColumns = [
         // {label: 'Id', fieldName: 'Id'},
         { label: 'Order Number', fieldName: 'Name' },
@@ -26,47 +28,100 @@ export default class OrderHistory extends LightningElement {
         this.loadPreviousOrders();
     }
 
-    loadPreviousOrders() {
-        getPrevoiusOrders().then(data => {
-            this.previousOrders = data;
-        }).catch(error => {
-            this.dispatchEvent(new ShowToastEvent({
+   
+
+    totalRecords = 0;
+    totalPages = 0;
+    currentPage = 1;
+    pageSize = 5; // Records per page
+
+    showProductSection = false;
+    showPurchaseOrderSection = true;
+    showCartSection = false;
+    showInvoiceSection = false;
+
+
+    async loadPreviousOrders() {
+
+        try {
+            const result = await getPrevoiusOrders({ pageNumber: this.currentPage, pageSize: this.pageSize });
+            this.wiredResult = result;
+            this.previousOrders = result.records;
+            this.totalRecords = result.totalRecords;
+            this.totalPages = result.totalPages;
+            
+        } catch (error) {
+              this.dispatchEvent(new ShowToastEvent({
                 title: 'Unable to fetch orders',
                 message: error.message,
                 variant: 'error',
             }));
-        });
+        }finally{
+            refreshApex(this.wiredResult);
+        }
+       
     }
+
+     previousPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.loadPreviousOrders();
+        }
+    }
+
+     // Navigate to Next Page
+    nextPage() {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+            this.loadPreviousOrders();
+        }
+    }
+
+    // Disable navigation buttons when needed
+    get disablePrevious() {
+        return this.currentPage === 1;
+    }
+
+    get disableNext() {
+        return this.currentPage === this.totalPages;
+    }
+
+
 
     handleStartOrder() {
         this.showProductTable = true;
+        this.showProductSection = true;
+        this.showPurchaseOrderSection = false;
     }
 
     handleAddToCart(event) {
         console.log('Product added to the cart', JSON.stringify(event.detail));
-        const product = event.detail;
-        console.log(product);
+        const productList = event.detail.productIds;
         
-        const existing = this.cartItems.find(p => p.Id === product.Id);
-        if (existing) {
-            console.log('Existing product found');
-            console.log(existing.Quantity__c);
-            
-            if (existing.Quantity__c <= product.Available_Units__c) {
-                existing.Quantity__c++;
-                this.cartItems = [...this.cartItems];
-                console.log("updated cart items"  + JSON.stringify(this.cartItems));
+        for(const product of productList) {
+            const existing = this.cartItems.find(p => p.Id === product.Id);
+            if (existing) {
+                console.log('Existing product found');
+                console.log(existing.Quantity__c);
+                
+                if (existing.Quantity__c <= product.Available_Units__c) {
+                    existing.Quantity__c++;
+                    this.cartItems = [...this.cartItems];
+                    console.log("updated cart items"  + JSON.stringify(this.cartItems));
+                }
             }
-        }
-        else {
-            this.cartItems.push({ ...product, Quantity__c: 1 });
-            //this.cartItems = [...this.cartItems];
-        }
+            else {
+                this.cartItems.push({ ...product, Quantity__c: 1 });
+            }
+        }   
+        
+        this.cartItems = [...this.cartItems];
 
 
         if (this.cartItems.length > 0) {
 
             this.showCart = true;
+            this.showCartSection = true;
         }
 
         console.log('Cart Items ', JSON.stringify(this.cartItems));
@@ -117,12 +172,17 @@ export default class OrderHistory extends LightningElement {
         this.showProductTable = false;
         this.showCart = false;
         this.showSummary = false;
-        this.loadPreviousOrders();
+        this.showInvoiceSection = false;
+        this.showPurchaseOrderSection = true;
+        this.loadPreviousOrders(); 
     }
 
     handleCheckout() {
         this.showSummary = true;
         this.recalculateCart();
+        this.showProductSection = false;
+        this.showCartSection = false;
+        this.showInvoiceSection = true;
     }
 
     recalculateCart() {
