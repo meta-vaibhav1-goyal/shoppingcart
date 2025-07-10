@@ -39,36 +39,73 @@ export default class CartItem extends LightningElement {
         for (let draft of drafts) {
             const index = updatedCart.findIndex(item => item.Id === draft.Id);
             if (index !== -1) {
-                const newQty = Number(draft.Quantity__c);
-                console.log(newQty);
-                const item = updatedCart[index];
-                console.log(JSON.stringify(item));
-                const maxQty = item.Original_Stock__c;
-                console.log(maxQty);
+
+                const maxAvaliableQty = updatedCart[index].totalAvaliableUnits; 
+
+                
+                    // cases
+                    const newQty = Number(draft.Quantity__c);
+                    const item = updatedCart[index];
+                    const maxQty = item.totalAvaliableUnits;
+
+                    if (!Number.isFinite(newQty)) {
+                        this.showToast('Invalid input', 'Quantity must be a number.', 'error');
+                        return;
+                    }
+
+                    if (newQty <= 0) {
+                        this.showToast('Invalid Quantity', 'Quantity must be greater than 0.', 'error');
+                        return;
+                    }
+
+                    if (newQty > maxQty) {
+                        this.showToast('Not Enough Stock', `Product units not  available`, 'error');
+                        return;
+                    }
+
+                    const newAvailable =  maxQty - newQty;
+
+                    updatedCart[index] = {
+                        ...item,
+                        Quantity__c: newQty,
+                        Available_Units__c: newAvailable
+                    };
+
+
+                // const newQty = Number(draft.Quantity__c);
+                // console.log("newQty" + newQty);
+                // const item = updatedCart[index];
+                // console.log(JSON.stringify(item));
+                // const maxQty = item.Original_Stock__c;
+                // console.log("maxQuantity " + maxQty);
+                // const oldQty = item.Available_Units__c;
+                // console.log("oldQty " + oldQty);
+                
+                
                 //const available = item.Available_Units__c + item.Quantity__c; // old + returned stock
 
                 //  Validation
-                if (!Number.isFinite(newQty)) {
-                    this.showToast('Invalid input', 'Quantity must be a number.', 'error');
-                    return;
-                }
-                if (newQty <= 0) {
-                    this.showToast('Invalid Quantity', 'Quantity must be greater than 0.', 'error');
-                    return;
-                }
-                if (newQty > maxQty) {
-                    this.showToast('Not Enough Stock', `Only ${maxQty} units available`, 'error');
-                    return;
-                }
+                // if (!Number.isFinite(newQty)) {
+                //     this.showToast('Invalid input', 'Quantity must be a number.', 'error');
+                //     return;
+                // }
+                // if (newQty <= 0) {
+                //     this.showToast('Invalid Quantity', 'Quantity must be greater than 0.', 'error');
+                //     return;
+                // }
+                // if (newQty > maxQty) {
+                //     this.showToast('Not Enough Stock', `Only ${maxQty} units available`, 'error');
+                //     return;
+                // }
 
                 //  Update item quantity
-                const newAvailable = maxQty - newQty;
+                // const newAvailable = oldQty - newQty;
 
-                updatedCart[index] = {
-                    ...item,
-                    Quantity__c: newQty,
-                    Available_Units__c: newAvailable
-                };
+                // updatedCart[index] = {
+                //     ...item,
+                //     Quantity__c: newQty,
+                //     Available_Units__c: newAvailable
+                // };
                 
             }
         }

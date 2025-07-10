@@ -14,6 +14,7 @@ export default class OrderHistory extends LightningElement {
     showCart = false;
     showSummary = false;
     wiredResult;
+    arr = [];
     orderColumns = [
         // {label: 'Id', fieldName: 'Id'},
         { label: 'Order Number', fieldName: 'Name' },
@@ -95,7 +96,6 @@ export default class OrderHistory extends LightningElement {
     }
 
     handleAddToCart(event) {
-        console.log('Product added to the cart', JSON.stringify(event.detail));
         const productList = event.detail.productIds;
         
         for(const product of productList) {
@@ -136,13 +136,20 @@ export default class OrderHistory extends LightningElement {
         const oldCartItems = [...this.cartItems];
         console.log(JSON.stringify("old " + JSON.stringify(oldCartItems)));
         console.log(JSON.stringify("new " + JSON.stringify(updatedCartItems)));
+        
+        //arr = [oldCartItems, updatedCartItems];
 
         // Sync back to product table via custom event
         const productTable = this.template.querySelector('c-product-comp');
+        
+        if(productTable) {
+            // productTable.dispatchEvent(new CustomEvent('productupdate', {detail: arr}));
+            const arr = [oldCartItems, updatedCartItems];
+            productTable.updateAvailableUnits(arr);
+        }
+        
 
-        const arr = [oldCartItems, updatedCartItems];
-
-        this.dispatchEvent(new CustomEvent('productupdate', {detail: arr}));
+        //this.dispatchEvent(new CustomEvent('productupdate', {detail: arr}));
        
 
         this.cartItems = updatedCartItems;

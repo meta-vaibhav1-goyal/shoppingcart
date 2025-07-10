@@ -1,4 +1,4 @@
-import { LightningElement, wire } from 'lwc';
+import { LightningElement, wire, api } from 'lwc';
 import getPaginatedProducts from '@salesforce/apex/productList.getPaginatedProducts';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import searchProducts from '@salesforce/apex/productSearch.searchProducts';
@@ -10,6 +10,7 @@ import Toast from 'lightning/toast';
 export default class ProductComp extends LightningElement {
 
     products; 
+    @api cartitemarr;
     
     columns = [
         // {label: 'Id', fieldName: 'Id'},
@@ -44,6 +45,7 @@ export default class ProductComp extends LightningElement {
     // Fetch paginated data from Apex
     connectedCallback() {
         this.loadProducts();
+        // this.addEventListener('productupdate', this.handleProductUpdate.bind(this));
     }
 
     async loadProducts() {
@@ -51,9 +53,8 @@ export default class ProductComp extends LightningElement {
             const result = await getPaginatedProducts({ pageNumber: this.currentPage, pageSize: this.pageSize });
             this.productList = result;
             this.products = result.records.map(p => ({
-                ...p, disableAdd: p.Available_Units__c === 0
+                ...p, totalAvaliableUnits: p.Available_Units__c
             }));
-            
             this.totalRecords = result.totalRecords;
             this.totalPages = result.totalPages;
             
@@ -116,35 +117,6 @@ export default class ProductComp extends LightningElement {
     }
 
 
-
-    // async handleClickEdit() {
-    //     // this is to select rows from the UI from DataTable
-    //     const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
-    //     console.log(selectedRows);
-    //     if(selectedRows.length != 1){
-    //         this.dispatchEvent(new ShowToastEvent({
-    //             title: 'Please select a row',
-    //             message: 'Please select a row to edit',
-    //             variant: 'error'
-    //         }));
-    //     }else{
-    //         const contactId = selectedRows[0].Id;     
-    //         console.log(contactId);
-    //         const result = await ContactModal.open({
-    //             size: 'large',
-    //             recordId: contactId,
-    //             label: 'Edit Contact Modal'
-    //         });
-            
-    //         if(result === 'Success') {
-    //            await refreshApex(this.wiredResult);
-    //         }
-           
-    //         console.log(result);
-    //     }
-    
-    // }
-
      handleAdd() {
         const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
         const products = []; 
@@ -169,15 +141,10 @@ export default class ProductComp extends LightningElement {
             }));
         }
         //const productId = selectedRows[0].Id;
-        console.log(products);
+        //console.log(products);
         this.dispatchEvent(new CustomEvent('addtocart', {
             detail: {
-                // Id: productId,
-                // Name: selectedRows[0].Name,
-                // Available_Units__c: selectedRows[0].Available_Units__c,
-                // SellingPrice__c: selectedRows[0].SellingPrice__c,
-                // Original_Stock__c: selectedRows[0].Available_Units__c
-                productIds: products
+                productIds: products,
             },
             bubbles: true,
             composed: true
@@ -190,54 +157,59 @@ export default class ProductComp extends LightningElement {
                         ...p,
                         Available_Units__c: p.Available_Units__c - 1
                     }; 
+                    console.log('Product updated ' + JSON.stringify(updated));
+                   
+                    
                     return updated;
                 }
                 return p;
             });
         }
-            
+
+        
+        
+        
+        
 
     }
 
 
+    @api
+    updateAvailableUnits(arr) {
+        const [oldCartItems, updatedCartItems] = arr;
+        console.log("Old Cart items inside product component" + JSON.stringify(oldCartItems));
+        console.log("New Cart items inside product component" + JSON.stringify(updatedCartItems));
 
-    // handleRowAction(event) {
-    //     const action = event.detail.action.name;
-    //     const row = event.detail.row;
-    //     if(action === 'add') {
-    //         this.dispatchEvent(new CustomEvent('addtocart', {
-    //             detail: {
-    //                  Id: row.Id,
-    //                 Name: row.Name,
-    //                 Available_Units__c: row.Available_Units__c,
-    //                 SellingPrice__c: row.SellingPrice__c,
-    //                 Original_Stock__c: row.Available_Units__c
+        updatedCartItems.forEach(updatedItem => {
+            const index = this.products.findIndex(p => p.Id === updatedItem.Id);
+            if(index !== -1) {
+                this.products[index].Available_Units__c = updatedItem.Available_Units__c;
+            }
+        });
 
-    //             },
-    //             bubbles: true,
-    //             composed: true
-    //         }));
+        this.products = [...this.products];
+        
+    }
 
-    //         // Decrease available units in the product table
-    //         this.products = this.products.map(p => {
-    //             if(p.Id === row.Id) {
-    //                 const updated = {
-    //                     ...p,
-    //                     Available_Units__c: p.Available_Units__c - 1
-    //                 };
-    //                 updated.disableAdd = updated.Available_Units__c === 0;
-    //                 return updated;
-    //             }
-    //             return p;
-    //         });
-    //     } 
+
+
+    // handleProductUpdate(event) {
+    //     const [oldCartItems, updatedCartItems] = event.detail;
+    //     console.log(oldCartItems);
+    //     console.log(newCartItems);
+    //     console.log('Product update event');
+
+    //     updatedCartItems.forEach(updatedItem => {
+    //         const index = this.products.findIndex(p => p.Id === updatedItem.Id);
+    //         if(index !== -1) {
+    //             this.products[index].Available_Units__c = updatedItem.Available_Units__c;
+    //         }
+    //     });
+
+    //     this.products = [...this.products];
+        
+    //     //updateAvailableUnitsFromCartDiff(arr[0],arr[1]);
     // }
-
-
-    handleProductUpdate(event) {
-        const arr = event.detail;
-        updateAvailableUnitsFromCartDiff(arr[0],arr[1]);
-    }
 
     handleRemoveProduct(event) {
         const products = event.detail;
@@ -259,7 +231,7 @@ updateAvailableUnitsFromCartDiff(oldCart, newCart) {
                 return {
                     ...p,
                     Available_Units__c: updatedQty,
-                    disableAdd: updatedQty === 0
+                    
                 };
             }
             return p;

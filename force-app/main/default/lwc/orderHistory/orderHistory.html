@@ -30,12 +30,9 @@
 
 
     <template if:true={showProductSection}>
-
         <lightning-card title="Products" icon-name="standard:product_consumed">
-            <template if:true={showProductTable}>
-                <c-product-comp onaddtocart={handleAddToCart}></c-product-comp>
-            </template>
-
+            <c-product-comp onaddtocart={handleAddToCart}
+                            ></c-product-comp>
         </lightning-card>
     </template>
 
