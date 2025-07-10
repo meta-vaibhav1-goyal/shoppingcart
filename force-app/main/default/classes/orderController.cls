@@ -52,7 +52,7 @@ public with sharing class orderController {
 
 
     @AuraEnabled
-    public static void placeOrder(PurchaseOrder__c order, List<PurchaseOrderLineItem__c> lineItems) {
+    public static String placeOrder(PurchaseOrder__c order, List<PurchaseOrderLineItem__c> lineItems) {
         insert order;
         for(PurchaseOrderLineItem__c item: lineItems) {
             item.PurchaseOrder__c = order.Id;
@@ -85,5 +85,9 @@ public with sharing class orderController {
         }
 
         update productMap.values();
+
+        PurchaseOrder__c o = [SELECT Name FROM PurchaseOrder__c WHERE Id =: order.Id];
+        return o.Name;
+        
     } 
 }

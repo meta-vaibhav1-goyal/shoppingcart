@@ -125,7 +125,7 @@ export default class OrderHistory extends LightningElement {
                 console.log('Existing product found');
                 console.log(existing.Quantity__c);
                 
-                if (existing.Quantity__c <= product.Available_Units__c) {
+                if (0 < product.Available_Units__c) {
                     existing.Quantity__c++;
                     this.cartItems = [...this.cartItems];
                     console.log("updated cart items"  + JSON.stringify(this.cartItems));
@@ -200,14 +200,18 @@ export default class OrderHistory extends LightningElement {
         this.showCart = this.cartItems.length > 0;
     }
 
-    handlePlaceOrder() {
+    handlePlaceOrder(event) {
+        console.log(JSON.stringify(event.detail));
+        const neworder = event.detail;
+        // this.previousOrders.push(neworder);
+        this.previousOrders = [neworder, ...this.previousOrders];
         this.cartItems = [];
         this.showProductTable = false;
         this.showCart = false;
         this.showSummary = false;
         this.showInvoiceSection = false;
         this.showPurchaseOrderSection = true;
-        this.loadPreviousOrders(); 
+        //this.loadPreviousOrders(); 
     }
 
     handleCheckout() {

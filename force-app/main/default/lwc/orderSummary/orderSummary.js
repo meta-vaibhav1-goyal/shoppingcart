@@ -33,8 +33,10 @@ export default class OrderSummary extends LightningElement {
         }));
 
         placeOrder({order, lineItems})
-        .then(() => {
-            this.dispatchEvent(new CustomEvent('placeorder'));
+        .then((result) => {
+            console.log('result from database'+ JSON.stringify(result) );
+            
+            this.dispatchEvent(new CustomEvent('placeorder',{detail: {...order, Name: result}}));
             this.dispatchEvent(new ShowToastEvent({
                 title: 'Order Placed',
                 message: 'Your order has been placed successfully',

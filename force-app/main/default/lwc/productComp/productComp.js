@@ -130,7 +130,7 @@ export default class ProductComp extends LightningElement {
      handleAdd() {
         const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
 
-        if(selectedRows.length != 1){
+        if(selectedRows.length < 1){
             this.dispatchEvent(new ShowToastEvent({
                 title: 'Please select a row',
                 message: 'Please select a row to add to cart',
@@ -139,7 +139,11 @@ export default class ProductComp extends LightningElement {
         }
 
         const products = []; 
+        let cnt = 1;
         console.log("addd to cart"); 
+        console.log(`Add button is clicked ${cnt} times`);
+        cnt++;
+        
         let noQuantityName = ""; 
         let isToast = false; 
         for (let i = 0; i < selectedRows.length; i++) {
