@@ -25,9 +25,12 @@
         </template>
 
         <lightning-datatable
-                    key-field="Id"
-                    data={filteredProducts}
+                   key-field="Id"
+                   data={filteredProducts}
                    columns={columns}
+                   onsort={handleSort}
+                   sorted-by={sortBy}
+                   sorted-direction={sortDirection}
                    onproductupdate={handleProductUpdate}
                    onremoveproduct={handleRemoveProduct}>
         </lightning-datatable>

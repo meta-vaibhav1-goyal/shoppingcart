@@ -8,6 +8,9 @@
                     key-field="Id"
                     data={previousOrders}
                     columns={orderColumns}
+                    onsort={handleSort}
+                    sorted-by={sortBy}
+                    sorted-direction={sortDirection}
                     hide-checkbox-column>
     
                 </lightning-datatable>

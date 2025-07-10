@@ -1,4 +1,4 @@
-import { LightningElement, wire, api } from 'lwc';
+import { LightningElement, wire, api, track } from 'lwc';
 import getPaginatedProducts from '@salesforce/apex/productList.getPaginatedProducts';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import searchProducts from '@salesforce/apex/productSearch.searchProducts';
@@ -14,25 +14,18 @@ export default class ProductComp extends LightningElement {
     
     columns = [
         // {label: 'Id', fieldName: 'Id'},
-        {label: 'Name', fieldName: 'Name'},
+        {label: 'Name', fieldName: 'Name', sortable: true},
         {label: 'Product Code', fieldName: 'Product__c'},
-        {label: 'Price', fieldName: 'SellingPrice__c', type: 'currency'},
-        {label: 'Units Available', fieldName: 'Available_Units__c'},
-        // {
-        //     type:'button',
-        //     typeAttributes: {
-        //         label: 'Add to Cart',
-        //         name: 'add',
-        //         title: 'Add',
-        //         disabled: {fieldName: 'disableAdd'},
-        //         variant: 'brand'
-        //     }
-        // }
+        {label: 'Price', fieldName: 'SellingPrice__c', type: 'currency', sortable: true},
+        {label: 'Units Available', fieldName: 'Available_Units__c', sortable: true},
+       
     ];
 
 
     productList;
 
+    @track sortBy;
+    @track sortDirection;
 
 
     totalRecords = 0;
@@ -47,6 +40,23 @@ export default class ProductComp extends LightningElement {
         this.loadProducts();
         // this.addEventListener('productupdate', this.handleProductUpdate.bind(this));
     }
+
+
+
+    handleSort(event) {
+        const {fieldName: sortedBy, sortDirection} = event.detail;
+        const cloneData = [...this.products];
+        cloneData.sort((a,b) => {
+            let valA = a[sortedBy] || "";
+            let valB = b[sortedBy] || "";
+            return sortDirection === 'asc' ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+        });
+
+        this.sortBy = sortedBy;
+        this.sortDirection = sortDirection;
+        this.products = [...cloneData]; 
+    }
+
 
     async loadProducts() {
         try {

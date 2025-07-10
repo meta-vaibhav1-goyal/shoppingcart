@@ -15,18 +15,39 @@ export default class OrderHistory extends LightningElement {
     showSummary = false;
     wiredResult;
     arr = [];
+
+    @track sortBy;
+    @track sortDirection;
+
+
+
     orderColumns = [
         // {label: 'Id', fieldName: 'Id'},
-        { label: 'Order Number', fieldName: 'Name' },
-        { label: 'Status', fieldName: 'Status__c' },
-        { label: 'Total Amount', fieldName: 'TotalAmount__c', type: 'currency' },
-        { label: 'Order Date', fieldName: 'OrderDate__c', type: 'date' },
+        { label: 'Order Number', fieldName: 'Name', sortable: true },
+        { label: 'Status', fieldName: 'Status__c', sortable: true },
+        { label: 'Total Amount', fieldName: 'TotalAmount__c', type: 'currency', sortable: true },
+        { label: 'Order Date', fieldName: 'OrderDate__c', type: 'date', sortable: true },
 
     ]
 
 
     connectedCallback() {
         this.loadPreviousOrders();
+    }
+
+
+    handleSort(event) {
+        const {fieldName: sortedBy, sortDirection} = event.detail;
+        const cloneData = [...this.previousOrders];
+        cloneData.sort((a,b) => {
+            let valA = a[sortedBy] || "";
+            let valB = b[sortedBy] || "";
+            return sortDirection === 'asc' ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+        });
+
+        this.sortBy = sortedBy;
+        this.sortDirection = sortDirection;
+        this.previousOrders = [...cloneData]; 
     }
 
    
