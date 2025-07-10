@@ -41,9 +41,8 @@ export default class CartItem extends LightningElement {
             if (index !== -1) {
 
                 const maxAvaliableQty = updatedCart[index].totalAvaliableUnits; 
-
                 
-                    // cases
+                // cases
                     const newQty = Number(draft.Quantity__c);
                     const item = updatedCart[index];
                     const maxQty = item.totalAvaliableUnits;
@@ -70,43 +69,6 @@ export default class CartItem extends LightningElement {
                         Quantity__c: newQty,
                         Available_Units__c: newAvailable
                     };
-
-
-                // const newQty = Number(draft.Quantity__c);
-                // console.log("newQty" + newQty);
-                // const item = updatedCart[index];
-                // console.log(JSON.stringify(item));
-                // const maxQty = item.Original_Stock__c;
-                // console.log("maxQuantity " + maxQty);
-                // const oldQty = item.Available_Units__c;
-                // console.log("oldQty " + oldQty);
-                
-                
-                //const available = item.Available_Units__c + item.Quantity__c; // old + returned stock
-
-                //  Validation
-                // if (!Number.isFinite(newQty)) {
-                //     this.showToast('Invalid input', 'Quantity must be a number.', 'error');
-                //     return;
-                // }
-                // if (newQty <= 0) {
-                //     this.showToast('Invalid Quantity', 'Quantity must be greater than 0.', 'error');
-                //     return;
-                // }
-                // if (newQty > maxQty) {
-                //     this.showToast('Not Enough Stock', `Only ${maxQty} units available`, 'error');
-                //     return;
-                // }
-
-                //  Update item quantity
-                // const newAvailable = oldQty - newQty;
-
-                // updatedCart[index] = {
-                //     ...item,
-                //     Quantity__c: newQty,
-                //     Available_Units__c: newAvailable
-                // };
-                
             }
         }
 
@@ -122,6 +84,11 @@ export default class CartItem extends LightningElement {
     handleRowAction(event) {
         const row = event.detail.row;
         this.cartItems = this.cartItems.filter(item => item.Id !== row.Id);
+
+        this.cartItems = [...this.cartItems];
+        console.log("Deleting cart " + JSON.stringify(this.cartItems));
+        
+
         this.dispatchEvent(new CustomEvent('remove', { detail: this.cartItems }));
     }
 

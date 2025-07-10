@@ -9,7 +9,7 @@ import Toast from 'lightning/toast';
 
 export default class ProductComp extends LightningElement {
 
-    products; 
+    products = [];
     @api cartitemarr;
     
     columns = [
@@ -193,69 +193,110 @@ export default class ProductComp extends LightningElement {
 
 
 
-    // handleProductUpdate(event) {
-    //     const [oldCartItems, updatedCartItems] = event.detail;
-    //     console.log(oldCartItems);
-    //     console.log(newCartItems);
-    //     console.log('Product update event');
 
-    //     updatedCartItems.forEach(updatedItem => {
-    //         const index = this.products.findIndex(p => p.Id === updatedItem.Id);
-    //         if(index !== -1) {
-    //             this.products[index].Available_Units__c = updatedItem.Available_Units__c;
-    //         }
-    //     });
-
-    //     this.products = [...this.products];
+    // @api 
+    // handleRemoveProduct(removeProductsFromCart) {
         
-    //     //updateAvailableUnitsFromCartDiff(arr[0],arr[1]);
-    // }
+    //     //console.log("removedProductsFromCart" + JSON.stringify(removeProductsFromCart));
+    //     const removedProducts = removeProductsFromCart;
+    //     console.log('pr' + JSON.stringify(removedProducts));
 
-    handleRemoveProduct(event) {
-        const products = event.detail;
-        console.log('pr' + JSON.stringify(products));
+    //     if(!Array.isArray(this.products)) {
+    //         console.error(" this.products is not initialized properly", this.products);
+    //         this.products = [];
+    //         return ;
+    //     }
        
         
-        this.restoreProducts(products);
+    //     this.products = this.products.map(p => {
+
+    //         if(!p || !p.Id) {
+    //             console.warn(" Skipping invalid product entry ", p);
+    //             return p;
+    //         }
+
+    //         const removed = removedProducts.find(r => r.Id === p.Id);
+    //         console.log("The removed qty " + removed.Quantity__c);
+            
+    //         if (removed) {
+    //             const removedQty = Number(removed.Quantity__c || 0);
+    //             console.log("The removed qty " + removedQty);
+    //             const availableQty = Number(p.Available_Units__c || 0);
+    //             const restoredQty = availableQty + removedQty;
+    //             console.log("The restored qty " + restoredQty);
+    //             return {
+    //                 ...p,
+    //                 Available_Units__c: restoredQty
+    //             };
+    //         }
+    //         return p;
+    //     });
+
+    //     //this.products = [...this.products];
+
+    //     console.log("Updated Products list ", JSON.stringify(this.products));
+
+    // }
+
+
+    @api
+    handleRemoveProduct(removedProductsFromCart) {
+        console.log(' Received removedProductsFromCart:', removedProductsFromCart);
+
+        // Safe extract
+        const removedProducts = Array.isArray(removedProductsFromCart) ? removedProductsFromCart : [];
+        console.log('removedProducts:', JSON.stringify(removedProducts));
+
+        //  Check this.products before .map()
+        if (!Array.isArray(this.products)) {
+            console.error(' this.products is not an array:', this.products);
+            return;
+        }
+
+        console.log(' Existing products:', JSON.stringify(this.products));
+
+        try {
+            this.products = this.products.map(p => {
+                if (!p || typeof p !== 'object') {
+                    console.warn(' Skipping invalid product:', p);
+                    return p;
+                }
+
+                if (!p.Id) {
+                    console.warn(' Product has no Id:', p);
+                    return p;
+                }
+
+                const removed = removedProducts.find(r => r.Id === p.Id);
+                if (removed) {
+                    const removedQty = Number(removed.Quantity__c || 0);
+                    const availableQty = Number(p.Available_Units__c || 0);
+
+                    if (isNaN(removedQty) || isNaN(availableQty)) {
+                        console.error(` Invalid quantity values: removedQty=${removedQty}, availableQty=${availableQty}`);
+                        return p;
+                    }
+
+                    const restoredQty = availableQty + removedQty;
+                    console.log(`Restoring qty: ${removedQty} → product Id ${p.Id}, new total: ${restoredQty}`);
+
+                    return {
+                        ...p,
+                        Available_Units__c: restoredQty
+                    };
+                }
+
+                return p;
+            });
+
+            console.log('Final updated products:', JSON.stringify(this.products));
+        } catch (err) {
+            console.error(' Error during products.map:', err);
+        }
     }
 
-    // Called when quantity in cart is edited
-updateAvailableUnitsFromCartDiff(oldCart, newCart) {
-    newCart.forEach(newItem => {
-        const oldItem = oldCart.find(o => o.Id === newItem.Id);
-        const diff = (oldItem ? oldItem.Quantity__c : 0) - newItem.Quantity__c;
+ 
 
-        this.products = this.products.map(p => {
-            if (p.Id === newItem.Id) {
-                const updatedQty = p.Available_Units__c + diff;
-                return {
-                    ...p,
-                    Available_Units__c: updatedQty,
-                    
-                };
-            }
-            return p;
-        });
-    });
-}
-
-// Called when a product is removed from cart
-restoreProducts(removedProducts) {
-    this.products = this.products.map(p => {
-        const removed = removedProducts.find(r => r.Id === p.Id);
-        console.log("The removed qty " + removed.Quantity__c);
-        
-        if (removed) {
-            const restoredQty = p.Available_Units__c + removed.Quantity__c;
-            return {
-                ...p,
-                Available_Units__c: restoredQty,
-                disableAdd: restoredQty === 0
-            };
-        }
-        return p;
-    });
-}
 
 
     get filteredProducts() {

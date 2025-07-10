@@ -166,9 +166,14 @@ export default class OrderHistory extends LightningElement {
             item => !updatedCart.some(u => u.Id === item.Id)
         );
 
-        this.dispatchEvent(new CustomEvent('removeproduct', {detail: removedProducts}));
+        console.log("removed Products " + JSON.stringify(removedProducts));
+        console.log("updated cart " + JSON.stringify(updatedCart));
 
- 
+        const productTable = this.template.querySelector('c-product-comp');
+
+        if(productTable) {
+            productTable.handleRemoveProduct(removedProducts);
+        }
 
         this.cartItems = updatedCart;
         this.showCart = this.cartItems.length > 0;
