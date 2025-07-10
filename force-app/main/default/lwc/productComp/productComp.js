@@ -129,12 +129,21 @@ export default class ProductComp extends LightningElement {
 
      handleAdd() {
         const selectedRows = this.template.querySelector('lightning-datatable').getSelectedRows();
+
+        if(selectedRows.length != 1){
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Please select a row',
+                message: 'Please select a row to add to cart',
+                variant: 'error'
+            }));
+        }
+
         const products = []; 
         console.log("addd to cart"); 
         let noQuantityName = ""; 
         let isToast = false; 
         for (let i = 0; i < selectedRows.length; i++) {
-            if(selectedRows[i].Available_Units__c <= 0){
+            if(selectedRows[i].Available_Units__c <= 0 || !Number.isFinite(selectedRows[i].Available_Units__c)){
                 noQuantityName = noQuantityName + selectedRows[i].Name + ', ';
                 isToast = true; 
             }else{
