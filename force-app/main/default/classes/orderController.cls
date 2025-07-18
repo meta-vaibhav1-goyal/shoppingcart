@@ -1,44 +1,35 @@
 public with sharing class orderController {
 
 
+    @TestVisible
+    static IPurchaseOrderSelector purchaseOrderSelector = new PurchaseOrderSelector();
 
-    // @AuraEnabled(cacheable=true)
-    // public static Map<String, Object> getPaginatedProducts(Integer pageNumber, Integer pageSize){ 
+    @TestVisible
+    static IProductSelector productSelector = new ProductSelector();
 
-    //     Map<String, Object> response = new Map<String, Object>();
+    @TestVisible
+    static fflib_SObjectUnitOfWork uow = new fflib_SObjectUnitOfWork(
+        new Schema.SObjectType[] {
+            PurchaseOrder__c.SObjectType,
+            PurchaseOrderLineItem__c.SObjectType,
+            Product2.SObjectType
+        }
+    );
 
-    //     List<Product2> products =  [SELECT  Id,Name, Product__c, SellingPrice__c,	Available_Units__c FROM Product2 
-    //     ORDER BY Name LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)];    
-        
-        
-    //      // Get total record count (for pagination)
-    //     Integer totalRecords = [SELECT COUNT() FROM Product2];
-
-    //     // Calculate total pages
-    //     Integer totalPages = (totalRecords + pageSize - 1) / pageSize;
-
-
-    //     // Add data to response map
-    //     response.put('records', products);
-    //     response.put('totalRecords', totalRecords);
-    //     response.put('totalPages', totalPages);
-        
-    //     return response;
-    // }
-    
-    // @AuraEnabled
-    // public static List<PurchaseOrder__c> getPrevoiusOrders() {
-    //     System.debug('--- PurchaseOrder__c --- ' + PurchaseOrder__c.sObjectType); 
-    //     return [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC] ;
-    // }
 
     @AuraEnabled(cacheable=true)
     public static Map<String, Object> getPrevoiusOrders(Integer pageNumber, Integer pageSize) {
         Map<String, Object> response = new Map<String, Object>();
-        List<PurchaseOrder__c> orders = [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC
-        LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)];
 
-        Integer totalRecords = [SELECT COUNT() FROM PurchaseOrder__c];
+        // List<PurchaseOrder__c> orders = [SELECT Id, Name, OrderDate__c,  Status__c, TotalAmount__c FROM PurchaseOrder__c Order BY CreatedDate DESC
+        // LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)];
+
+        List<PurchaseOrder__c> orders = purchaseOrderSelector.getPaginatedOrders(pageNumber, pageSize);
+
+        // Integer totalRecords = [SELECT COUNT() FROM PurchaseOrder__c];
+
+        Integer totalRecords = purchaseOrderSelector.getOrderCount();
+
 
         Integer totalPages = (totalRecords + pageSize - 1) / pageSize;
 
@@ -53,12 +44,17 @@ public with sharing class orderController {
 
     @AuraEnabled
     public static String placeOrder(PurchaseOrder__c order, List<PurchaseOrderLineItem__c> lineItems) {
-        insert order;
-        for(PurchaseOrderLineItem__c item: lineItems) {
-            item.PurchaseOrder__c = order.Id;
-        }
 
-        insert lineItems;
+       // insert order;
+
+       uow.registerNew(order);
+
+        for(PurchaseOrderLineItem__c item: lineItems) {
+            //item.PurchaseOrder__c = order.Id;
+            uow.registerNew(item, PurchaseOrderLineItem__c.PurchaseOrder__c, order);
+        }
+        
+        //insert lineItems;
 
         
         // Update product quantities
@@ -70,7 +66,8 @@ public with sharing class orderController {
 
 
         Map<Id,Product2> productMap = new Map<Id,Product2>(
-            [SELECT Id,Available_Units__c FROM Product2 WHERE Id IN: productIds]
+            // [SELECT Id,Available_Units__c FROM Product2 WHERE Id IN: productIds]
+            productSelector.getProductsByIdSet(productIds)
         );
 
         for(PurchaseOrderLineItem__c line: lineItems) {
@@ -84,10 +81,15 @@ public with sharing class orderController {
             }
         }
 
-        update productMap.values();
+        // update productMap.values();
 
-        PurchaseOrder__c o = [SELECT Name FROM PurchaseOrder__c WHERE Id =: order.Id];
-        return o.Name;
+        uow.registerDirty(productMap.values());
+
+        uow.commitWork();
+
+        // PurchaseOrder__c o = [SELECT Name FROM PurchaseOrder__c WHERE Id =: order.Id];
+        List<PurchaseOrder__c> o = purchaseOrderSelector.getOrderById(order.Id);
+        return o[0].Name;
         
     } 
 }

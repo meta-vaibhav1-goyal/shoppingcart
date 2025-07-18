@@ -1,6 +1,6 @@
 trigger accountLimitExample on Account (after delete, after insert, after update) {
 
-    System.debug('Total Number of SOQL Queries allowed in this Apex code context: ' + Limits.getLimitAggregateQueries());
+    System.debug('Total Number of SOQL Queries allowed in this Apex code context: ' + Limits.getLimitQueries());
 
     System.debug('Total Number of records that can be queried in this Apex code context: ' + Limits.getLimitApexCursorRows());
 

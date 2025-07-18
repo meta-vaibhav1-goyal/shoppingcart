@@ -2,8 +2,10 @@ trigger accountTriggerGovernorLimit on Account (before delete, before insert, be
 
     Set<Id> accountIds = new Set<Id>();
 
-    if(Trigger.isUpdate || Trigger.isDelete) {
+    if(Trigger.isUpdate) {
         accountIds.addAll(Trigger.newMap.keySet());
+        System.debug('New' + Trigger.newMap);
+        System.debug('Old' + Trigger.oldMap);
     } else if(Trigger.isInsert) {
         for(Account acc: Trigger.new) {
             if(acc.Id != null) {

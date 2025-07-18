@@ -9,17 +9,12 @@ trigger accountTestTrigger on Account (before insert, before update) {
 
     List<Contact> contacts = [SELECT Id, salutation, FirstName, LastName, Email FROM Contact WHERE AccountId IN: accountIds];
 
-
-
-    List<Contact> updateContacts = new List<Contact>();
-
     for(Contact c: contacts) {
         c.Description = c.salutation + ' ' + c.FirstName + ' ' + c.LastName;
-        updateContacts.add(c);
     }
 
     if(!updateContacts.isEmpty()) {
-        update updateContacts;
+        update contacts;
     }
 
 }
